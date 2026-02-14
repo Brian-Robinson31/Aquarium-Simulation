@@ -1,20 +1,28 @@
 import pygame
 import math
+import random
+from prey_fish import preyFish
+from predator_fish import PredatorFish
 
 pygame.init()
+
 
 
 info = pygame.display.Info()
 screen = pygame.display.set_mode((800, 600))
 pygame.display.set_caption("Aquarium Simulation")
 clock = pygame.time.Clock()
-arrow = pygame.Surface((50, 50), pygame.SRCALPHA)
-pygame.draw.polygon(arrow, (0, 0, 255), [(40, 25), (10, 15), (10, 35)])
+prey_list = [preyFish(100, 100, 3, 1)]
+predator_list = [PredatorFish(400, 300, -2, 2)]
+
+
+for int in range(10):
+    prey_list.append(preyFish(random.randint(0, screen.get_width()), random.randint(0, screen.get_height()), random.randint(-3, 3), random.randint(-3, 3)))
+
+for int in range(5):
+    predator_list.append(PredatorFish(random.randint(0, screen.get_width()), random.randint(0, screen.get_height()), random.randint(-2, 2), random.randint(-2, 2)))
+
 running = True
-x_pos = 100
-y_pos = 100
-x_velocity = 3
-y_velocity = 1
 
 while running:
     for event in pygame.event.get():
@@ -22,25 +30,23 @@ while running:
             running = False
 
 
-    x_pos += x_velocity
-    y_pos += y_velocity
+    for f in prey_list:
+        f.update(screen.get_width(), screen.get_height())
+
+    for f in predator_list:
+        f.update(screen.get_width(), screen.get_height())
+
+    screen.fill((100, 100, 255))
     
+    for f in prey_list:
+        rect = f.image.get_rect(center=(f.x_pos + 25, f.y_pos + 25))
+        screen.blit(f.image, rect)
 
-    if x_pos  >= screen.get_width() or x_pos <= 0:
-        x_velocity = -x_velocity
-    if y_pos  >= screen.get_height() or y_pos <= 0:
-        y_velocity = -y_velocity
+    for f in predator_list:
+        rect = f.image.get_rect(center=(f.x_pos + 25, f.y_pos + 25))
+        screen.blit(f.image, rect)
 
-
-    angle = math.degrees(math.atan2(-y_velocity, x_velocity))
-    rotated_arrow = pygame.transform.rotate(arrow, angle)
-    arrow_rect = rotated_arrow.get_rect(center=(x_pos + 25, y_pos + 25))
-
-    screen.fill((100, 100, 255)) 
-
-    screen.blit(rotated_arrow, arrow_rect)
-
-
+    
     clock.tick(60)
     pygame.display.flip()
 pygame.quit()
