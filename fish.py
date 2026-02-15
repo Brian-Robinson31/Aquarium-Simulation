@@ -7,12 +7,10 @@ class Fish:
         self.y_pos = y_pos
         self.x_velocity = x_velocity
         self.y_velocity = y_velocity
-        if type == "prey":
-            self.image = pygame.Surface((12, 12), pygame.SRCALPHA)
-            pygame.draw.circle(self.image, (0, 0, 255), (6, 6), 6)
-        elif type == "predator":
-            self.image = pygame.Surface((24, 24), pygame.SRCALPHA)
-            pygame.draw.circle(self.image, (255, 0, 0), (12, 12), 9)
+        self.state = "Default"
+        self.hunger_timer = 0
+        self.hunger_threshold = 100
+
 
 
         
