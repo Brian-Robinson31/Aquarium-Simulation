@@ -38,7 +38,7 @@ class preyFish(Fish):
 
         self.image = pygame.Surface((12, 12), pygame.SRCALPHA)
         self._move_normal(None)
-        pygame.draw.circle(self.image, (0, 255, 255), (6, 6), 6)
+        pygame.draw.circle(self.image, (0, 100, 255), (6, 6), 6)
         
         pass
     
