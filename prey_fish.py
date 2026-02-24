@@ -1,16 +1,18 @@
 import pygame
-import math
 from fish import Fish
+from boids import Boids
 
-class preyFish(Fish):
+class preyFish(Fish, Boids):
     def __init__(self, x_pos, y_pos, x_velocity, y_velocity):
         Fish.__init__(self, "prey", x_pos, y_pos, x_velocity, y_velocity)
+        Boids.__init__(self, x_pos, y_pos, x_velocity, y_velocity)
         self.state = "Default"
     
     def update(self, screen_width, screen_height, predator_list=None, food_list=None, prey_list=None):
         self.hunger_timer += 0.5
-        if self.hunger_timer > self.hunger_threshold:
-            self.state = "Hungry"
+
+        #if self.hunger_timer > self.hunger_threshold:
+            #self.state = "Hungry"
 
         if self.state == "Default":
             self._move_normal(prey_list)
@@ -25,10 +27,10 @@ class preyFish(Fish):
             self._avoid_predators(predator_list)
 
     def _move_normal(self, prey_list):
-        # TODO: Implement boid formation movement
-
         self.image = pygame.Surface((12, 12), pygame.SRCALPHA)
         pygame.draw.circle(self.image, (0, 0, 255), (6, 6), 6)
+
+        self.boid_step(prey_list)
         
         self.x_pos += self.x_velocity
         self.y_pos += self.y_velocity

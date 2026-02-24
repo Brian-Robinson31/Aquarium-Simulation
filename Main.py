@@ -10,9 +10,10 @@ pygame.init()
 
 
 info = pygame.display.Info()
-screen = pygame.display.set_mode((1000, 600))
+screen = pygame.display.set_mode((1500, 600))
 pygame.display.set_caption("Aquarium Simulation")
 clock = pygame.time.Clock()
+
 
 prey_list = [preyFish(100, 100, 3, 1)]
 predator_list = [PredatorFish(400, 300, -2, 2)]
@@ -64,6 +65,7 @@ while running:
     for f in food_list:
         rect = pygame.Rect(f.x_pos - f.size, f.y_pos - f.size, f.size * 2, f.size * 2)
         pygame.draw.circle(screen, f.color, (int(f.x_pos), int(f.y_pos)), f.size)
+
 
 
     clock.tick(60)
