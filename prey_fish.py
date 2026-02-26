@@ -9,15 +9,15 @@ class preyFish(Fish, Boids):
         self.state = "Default"
     
     def update(self, screen_width, screen_height, predator_list=None, food_list=None, prey_list=None):
-        self.hunger_timer += 0.5
+        self.hunger_timer += 0.1
 
-        #if self.hunger_timer > self.hunger_threshold:
-            #self.state = "Hungry"
+        if self.hunger_timer > self.hunger_threshold:
+            self.state = "Hungry"
 
         if self.state == "Default":
             self._move_normal(prey_list)
         elif self.state == "Hungry":
-            self._move_hungry(food_list)
+            self._move_hungry(food_list, prey_list)
         
 
         self._avoid_boundaries(screen_width, screen_height)
@@ -35,14 +35,49 @@ class preyFish(Fish, Boids):
         self.x_pos += self.x_velocity
         self.y_pos += self.y_velocity
 
-    def _move_hungry(self, food_list):
-        # TODO: Implement food-seeking movement
-
+    def _move_hungry(self, food_list, prey_list):
         self.image = pygame.Surface((12, 12), pygame.SRCALPHA)
-        self._move_normal(None)
-        pygame.draw.circle(self.image, (0, 100, 255), (6, 6), 6)
-        
-        pass
+        pygame.draw.circle(self.image, (0, 255, 255), (6, 6), 6)
+
+        if not food_list:
+            self.boid_step(prey_list)
+            self.x_pos += self.x_velocity
+            self.y_pos += self.y_velocity
+            return
+
+        target_food = None
+        target_distance = float('inf')
+        for food in food_list:
+            food_vector = pygame.math.Vector2(food.x_pos - self.x_pos, food.y_pos - self.y_pos)
+            distance = food_vector.length()
+            if distance < target_distance:
+                target_distance = distance
+                target_food = food
+
+        if target_food is None:
+            self.boid_step(prey_list)
+            self.x_pos += self.x_velocity
+            self.y_pos += self.y_velocity
+            return
+
+        if target_distance < 15:
+            food_list.remove(target_food)
+            self.state = "Default"
+            self.hunger_timer = 0
+            self._move_normal(prey_list)
+            return
+
+        food_vector = pygame.math.Vector2(target_food.x_pos - self.x_pos, target_food.y_pos - self.y_pos)
+        if food_vector.length_squared() > 0:
+            food_vector = food_vector.normalize()
+            self.x_velocity += food_vector.x * 0.3
+            self.y_velocity += food_vector.y * 0.3
+            self._limit_velocity(self.max_speed)
+
+        self.x_pos += self.x_velocity
+        self.y_pos += self.y_velocity
+            
+
     
     def _avoid_boundaries(self, screen_width, screen_height):
 

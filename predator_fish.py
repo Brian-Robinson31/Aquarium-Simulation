@@ -13,7 +13,7 @@ class PredatorFish(Fish):
             self.state = "Hungry"
 
         if self.state == "Default":
-            self._move_normal(prey_list=None)
+            self._move_normal()
         elif self.state == "Hungry":
             self._move_hungry(prey_list)
 
@@ -21,23 +21,57 @@ class PredatorFish(Fish):
 
         self._avoid_boundaries(screen_width, screen_height)
 
-    def _move_normal(self, prey_list):
-        # TODO: Implement boid formation movement
-
+    def _move_normal(self):
         self.image = pygame.Surface((24, 24), pygame.SRCALPHA)
         pygame.draw.circle(self.image, (255, 0, 0), (12, 12), 12)
-        
         self.x_pos += self.x_velocity
         self.y_pos += self.y_velocity
 
-    def _move_hungry(self, food_list):
-        # TODO: Implement food-seeking movement
+    def _move_hungry(self, prey_list):
 
         self.image = pygame.Surface((24, 24), pygame.SRCALPHA)        
-        self._move_normal(None)
         pygame.draw.circle(self.image, (0, 0, 0), (12, 12), 12)
+        if not prey_list:
+            self.x_pos += self.x_velocity
+            self.y_pos += self.y_velocity
+            return
+
+        target_prey = None
+        target_distance = float('inf')
+        for prey in prey_list:
+            prey_vector = pygame.math.Vector2(prey.x_pos - self.x_pos, prey.y_pos - self.y_pos)
+            distance = prey_vector.length()
+            if distance < target_distance:
+                target_distance = distance
+                target_prey = prey
+
+        if target_prey is None:
+            self.x_pos += self.x_velocity
+            self.y_pos += self.y_velocity
+            return
+
+        if target_distance < 18:
+            prey_list.remove(target_prey)
+            self.state = "Default"
+            self.hunger_timer = 0
+            self._move_normal()
+            return
+
+        prey_vector = pygame.math.Vector2(target_prey.x_pos - self.x_pos, target_prey.y_pos - self.y_pos)
+        if prey_vector.length_squared() == 0:
+            self.x_pos += self.x_velocity
+            self.y_pos += self.y_velocity
+            return
+
+        direction = prey_vector.normalize()
+        speed = math.sqrt(self.x_velocity ** 2 + self.y_velocity ** 2)
+        self.x_velocity = direction.x * speed
+        self.y_velocity = direction.y * speed
+
+        self.x_pos += self.x_velocity
+        self.y_pos += self.y_velocity
         
-        pass
+        
     
     def _avoid_boundaries(self, screen_width, screen_height):
 

@@ -44,10 +44,10 @@ while running:
 
 
     for f in prey_list:
-        f.update(screen.get_width(), screen.get_height(), predator_list, None, prey_list)
+        f.update(screen.get_width(), screen.get_height(), predator_list, food_list, prey_list)
 
     for f in predator_list:
-        f.update(screen.get_width(), screen.get_height())
+        f.update(screen.get_width(), screen.get_height(), prey_list)
 
     for f in food_list:
         f.__update__(screen.get_width(), screen.get_height())
