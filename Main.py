@@ -14,12 +14,15 @@ screen = pygame.display.set_mode((1500, 600))
 pygame.display.set_caption("Aquarium Simulation")
 clock = pygame.time.Clock()
 
+# Simulation time: 12 hours pass every 15 real seconds
+# At 60 FPS: 12 hours / (15 * 60) = 0.01333 hours per frame
+simulation_hours = 0.0  
 
 prey_list = [preyFish(100, 100, 3, 1)]
 predator_list = [PredatorFish(400, 300, -2, 2)]
 
 food_list = []
-food_spawn_interval = 20000 # 
+food_spawn_interval = 12  # Food spawns every 12 simulated hours
 last_food_spawn = 0
 
 
@@ -36,11 +39,14 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    now_ms = pygame.time.get_ticks()
-    if now_ms - last_food_spawn >= food_spawn_interval:
-        for _ in range(20):  # Spawn 20 food particles at a time
+    # Update simulation time (12 hours per 15 seconds)
+    simulation_hours += 12 / (15 * 60)  # 0.01333 hours per frame at 60 FPS
+    
+    # Spawn food every 12 simulated hours
+    if simulation_hours - last_food_spawn >= food_spawn_interval:
+        for _ in range(20):  
             food_list.append(Food(random.randint(0, screen.get_width()), random.randint(-20, 0), random.randint(1, 9)))
-        last_food_spawn = now_ms
+        last_food_spawn = simulation_hours
 
 
     for f in prey_list:
@@ -66,7 +72,12 @@ while running:
         rect = pygame.Rect(f.x_pos - f.size, f.y_pos - f.size, f.size * 2, f.size * 2)
         pygame.draw.circle(screen, f.color, (int(f.x_pos), int(f.y_pos)), f.size)
 
-
+    hours = int(simulation_hours) % 24
+    minutes = int((simulation_hours % 1) * 60)
+    font = pygame.font.Font(None, 36)
+    time_text = font.render(f"Time: {hours:02d}:{minutes:02d}", True, (255, 255, 255))
+    time_rect = time_text.get_rect(topright=(screen.get_width() - 10, 10))
+    screen.blit(time_text, time_rect)
 
     clock.tick(60)
     pygame.display.flip()

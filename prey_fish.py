@@ -9,7 +9,9 @@ class preyFish(Fish, Boids):
         self.state = "Default"
     
     def update(self, screen_width, screen_height, predator_list=None, food_list=None, prey_list=None):
-        self.hunger_timer += 0.1
+        # Prey gets hungry after 6 simulated hours , which is about 8 seconds in real time
+        # At 60 FPS: 100 / (7.5 * 60) = 0.2222 per frame
+        self.hunger_timer += 0.2222
 
         if self.hunger_timer > self.hunger_threshold:
             self.state = "Hungry"
