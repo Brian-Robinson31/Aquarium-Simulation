@@ -1,16 +1,33 @@
 import pygame
 import math
+import random
 from fish import Fish
 
 class PredatorFish(Fish):
     def __init__(self, x_pos, y_pos, x_velocity, y_velocity):
         Fish.__init__(self, "predator", x_pos, y_pos, x_velocity, y_velocity)   
+        self.image = pygame.Surface((24, 24), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (255, 0, 0), (12, 12), 12)
         self.state = "Default"
+        self.reproduction_interval_hours = 72.0  # About 3 simulation days
+        self.next_reproduction_time = self.reproduction_interval_hours
+        # 6-7 simulation days of additional hunger after becoming Hungry.
+        # hunger_timer rises by 0.1667 each frame, and one day is 1800 frames.
+        # 6-7 days is about 1800-2100 hunger units.
+        self.starvation_day_min = 6
+        self.starvation_day_max = 7
+        self.starvation_hunger_window = random.uniform(1800, 2100)
 
-    def update(self, screen_width, screen_height, prey_list=None):
+    def update(self, screen_width, screen_height, prey_list=None, predator_list=None):
         # Predator gets hungry every 8 simulation hours, which is about 10 seconds in real time
         # At 60 FPS: 100 / (10 * 60) = 0.1667 per frame
         self.hunger_timer += 0.1667
+
+        if self.hunger_timer > self.hunger_threshold + self.starvation_hunger_window:
+            if predator_list is not None and self in predator_list:
+                predator_list.remove(self)
+            return
+
         if self.hunger_timer > self.hunger_threshold:
             self.state = "Hungry"
 
@@ -22,6 +39,27 @@ class PredatorFish(Fish):
     
 
         self._avoid_boundaries(screen_width, screen_height)
+
+    def can_reproduce(self, simulation_hours):
+        return simulation_hours >= self.next_reproduction_time and self.hunger_timer < self.hunger_threshold
+
+    def reproduce(self, simulation_hours):
+        if not self.can_reproduce(simulation_hours):
+            return None
+
+        self.next_reproduction_time = simulation_hours + self.reproduction_interval_hours
+        child = PredatorFish(
+            self.x_pos + random.uniform(-15, 15),
+            self.y_pos + random.uniform(-15, 15),
+            random.choice([-2, -1, 1, 2]),
+            random.choice([-2, -1, 1, 2]),
+        )
+        child.reproduction_interval_hours = self.reproduction_interval_hours
+        child.next_reproduction_time = simulation_hours + child.reproduction_interval_hours
+        child.starvation_day_min = self.starvation_day_min
+        child.starvation_day_max = self.starvation_day_max
+        child.starvation_hunger_window = random.uniform(1800, 2100)
+        return child
 
     def _move_normal(self):
         self.image = pygame.Surface((24, 24), pygame.SRCALPHA)

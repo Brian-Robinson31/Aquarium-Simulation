@@ -49,11 +49,27 @@ while running:
         last_food_spawn = simulation_hours
 
 
-    for f in prey_list:
+    for f in prey_list[:]:
         f.update(screen.get_width(), screen.get_height(), predator_list, food_list, prey_list)
 
+    for f in predator_list[:]:
+        f.update(screen.get_width(), screen.get_height(), prey_list, predator_list)
+
+    new_prey = []
+    for f in prey_list:
+        child = f.reproduce(simulation_hours)
+        if child is not None:
+            new_prey.append(child)
+    if new_prey:
+        prey_list.extend(new_prey)
+
+    new_predators = []
     for f in predator_list:
-        f.update(screen.get_width(), screen.get_height(), prey_list)
+        child = f.reproduce(simulation_hours)
+        if child is not None:
+            new_predators.append(child)
+    if new_predators:
+        predator_list.extend(new_predators)
 
     for f in food_list:
         f.__update__(screen.get_width(), screen.get_height())
