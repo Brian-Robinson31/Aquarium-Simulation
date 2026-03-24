@@ -11,17 +11,17 @@ class PredatorFish(Fish):
         self.state = "Default"
         self.reproduction_interval_hours = 72.0  # About 3 simulation days
         self.next_reproduction_time = self.reproduction_interval_hours
-        # 6-7 simulation days of additional hunger after becoming Hungry.
-        # hunger_timer rises by 0.1667 each frame, and one day is 1800 frames.
-        # 6-7 days is about 1800-2100 hunger units.
-        self.starvation_day_min = 6
-        self.starvation_day_max = 7
-        self.starvation_hunger_window = random.uniform(1800, 2100)
+        # About 68-83 seconds of additional hunger after becoming Hungry.
+        # hunger_timer rises by 0.1111 each frame, and one day is 1800 frames.
+        # This 450-550 window adds prolonged starvation variability.
+        self.starvation_day_min = 1
+        self.starvation_day_max = 2
+        self.starvation_hunger_window = random.uniform(450, 550)
 
     def update(self, screen_width, screen_height, prey_list=None, predator_list=None):
-        # Predator gets hungry every 8 simulation hours, which is about 10 seconds in real time
-        # At 60 FPS: 100 / (10 * 60) = 0.1667 per frame
-        self.hunger_timer += 0.1667
+        # Predator gets hungry every 12 simulation hours, which is about 15 seconds in real time.
+        # At 60 FPS: 100 / (15 * 60) = 0.1111 per frame.
+        self.hunger_timer += 0.1111
 
         if self.hunger_timer > self.hunger_threshold + self.starvation_hunger_window:
             if predator_list is not None and self in predator_list:
@@ -58,7 +58,7 @@ class PredatorFish(Fish):
         child.next_reproduction_time = simulation_hours + child.reproduction_interval_hours
         child.starvation_day_min = self.starvation_day_min
         child.starvation_day_max = self.starvation_day_max
-        child.starvation_hunger_window = random.uniform(1800, 2100)
+        child.starvation_hunger_window = random.uniform(450, 550)
         return child
 
     def _move_normal(self):

@@ -1,9 +1,49 @@
+import argparse
+import csv
 import pygame
 import math
 import random
+import matplotlib.pyplot as plt
 from prey_fish import preyFish
 from predator_fish import PredatorFish
 from food import Food;
+
+
+parser = argparse.ArgumentParser(description="Aquarium predator-prey simulation")
+parser.add_argument(
+    "--starting-prey",
+    type=int,
+    default=31,
+    help="Number of prey fish at simulation start (default: 31)",
+)
+parser.add_argument(
+    "--starting-predators",
+    type=int,
+    default=6,
+    help="Number of predator fish at simulation start (default: 6)",
+)
+parser.add_argument(
+    "--food-spawn-count",
+    type=int,
+    default=20,
+    help="Number of food pellets spawned each food cycle (default: 20)",
+)
+parser.add_argument(
+    "--food-spawn-frequency",
+    type=float,
+    default=12.0,
+    help="Food spawn frequency in simulated hours (default: 12)",
+)
+args = parser.parse_args()
+
+if args.starting_prey < 0:
+    parser.error("--starting-prey must be 0 or greater")
+if args.starting_predators < 0:
+    parser.error("--starting-predators must be 0 or greater")
+if args.food_spawn_count < 0:
+    parser.error("--food-spawn-count must be 0 or greater")
+if args.food_spawn_frequency <= 0:
+    parser.error("--food-spawn-frequency must be greater than 0")
 
 pygame.init()
 
@@ -18,21 +58,28 @@ clock = pygame.time.Clock()
 # At 60 FPS: 12 hours / (15 * 60) = 0.01333 hours per frame
 simulation_hours = 0.0  
 
-prey_list = [preyFish(100, 100, 3, 1)]
-predator_list = [PredatorFish(400, 300, -2, 2)]
+prey_list = []
+predator_list = []
 
 food_list = []
-food_spawn_interval = 12  # Food spawns every 12 simulated hours
+food_spawn_interval = args.food_spawn_frequency
+food_spawn_count = args.food_spawn_count
 last_food_spawn = 0
 
 
-for i in range(30):
+for i in range(args.starting_prey):
     prey_list.append(preyFish(random.randint(0, screen.get_width()), random.randint(0, screen.get_height()), random.choice([-3, -2, -1, 1, 2, 3]), random.choice([-3, -2, -1, 1, 2, 3])))
 
-for i in range(5):
+for i in range(args.starting_predators):
     predator_list.append(PredatorFish(random.randint(0, screen.get_width()), random.randint(0, screen.get_height()), random.choice([-2, -1, 1, 2]), random.choice([-2, -1, 1, 2])))
 
 running = True
+all_fish_dead = False
+
+time_history = [simulation_hours]
+prey_population_history = [len(prey_list)]
+predator_population_history = [len(predator_list)]
+food_population_history = [len(food_list)]
 
 while running:
     for event in pygame.event.get():
@@ -42,9 +89,9 @@ while running:
     # Update simulation time (12 hours per 15 seconds)
     simulation_hours += 12 / (15 * 60)  # 0.01333 hours per frame at 60 FPS
     
-    # Spawn food every 12 simulated hours
+    # Spawn food at the configured simulated-hour interval.
     if simulation_hours - last_food_spawn >= food_spawn_interval:
-        for _ in range(20):  
+        for _ in range(food_spawn_count):
             food_list.append(Food(random.randint(0, screen.get_width()), random.randint(-20, 0), random.randint(1, 9)))
         last_food_spawn = simulation_hours
 
@@ -74,6 +121,15 @@ while running:
     for f in food_list:
         f.__update__(screen.get_width(), screen.get_height())
 
+    time_history.append(simulation_hours)
+    prey_population_history.append(len(prey_list))
+    predator_population_history.append(len(predator_list))
+    food_population_history.append(len(food_list))
+
+    if len(prey_list) == 0 and len(predator_list) == 0:
+        all_fish_dead = True
+        running = False
+
     screen.fill((100, 100, 255))
     
     for f in prey_list:
@@ -98,6 +154,32 @@ while running:
     clock.tick(60)
     pygame.display.flip()
 pygame.quit()
+#Data Export logic
+csv_output_path = "simulation_stats.csv"
+with open(csv_output_path, "w", newline="") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["simulation_hours", "prey_population", "predator_population", "food_population"])
+    for i in range(len(time_history)):
+        writer.writerow(
+            [
+                f"{time_history[i]:.4f}",
+                prey_population_history[i],
+                predator_population_history[i],
+                food_population_history[i],
+            ]
+        )
+
+if all_fish_dead:
+    plt.figure(figsize=(10, 5))
+    plt.plot(time_history, prey_population_history, color="blue", label="Prey Population")
+    plt.plot(time_history, predator_population_history, color="red", label="Predator Population")
+    plt.title("Predator and Prey Population Over Time")
+    plt.xlabel("Simulation Time (hours)")
+    plt.ylabel("Population")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
 
