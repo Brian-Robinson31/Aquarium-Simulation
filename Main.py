@@ -80,6 +80,7 @@ time_history = [simulation_hours]
 prey_population_history = [len(prey_list)]
 predator_population_history = [len(predator_list)]
 food_population_history = [len(food_list)]
+last_logged_hour = int(simulation_hours)
 
 while running:
     for event in pygame.event.get():
@@ -121,10 +122,13 @@ while running:
     for f in food_list:
         f.__update__(screen.get_width(), screen.get_height())
 
-    time_history.append(simulation_hours)
-    prey_population_history.append(len(prey_list))
-    predator_population_history.append(len(predator_list))
-    food_population_history.append(len(food_list))
+    current_hour_mark = int(simulation_hours)
+    if current_hour_mark > last_logged_hour:
+        time_history.append(simulation_hours)
+        prey_population_history.append(len(prey_list))
+        predator_population_history.append(len(predator_list))
+        food_population_history.append(len(food_list))
+        last_logged_hour = current_hour_mark
 
     if len(prey_list) == 0 and len(predator_list) == 0:
         all_fish_dead = True

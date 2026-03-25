@@ -120,7 +120,7 @@ class preyFish(Fish, Boids):
     
     def _avoid_boundaries(self, screen_width, screen_height):
 
-        buffer = 50
+        buffer = 100
         fish_size = 12
         max_speed = 3
         turn_force = 0.1
