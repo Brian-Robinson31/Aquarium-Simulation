@@ -18,11 +18,24 @@ class preyFish(Fish, Boids):
         self.starvation_day_min = 2
         self.starvation_day_max = 3
         self.starvation_hunger_window = random.uniform(800, 1200)
+        self.overpopulation_threshold = 70
+        self.overpopulation_hunger_rate = 0.01
+        self.overpopulation_hunger_rate_cap = 0.25
     
     def update(self, screen_width, screen_height, predator_list=None, food_list=None, prey_list=None):
         # Prey gets hungry after 6 simulated hours , which is about 8 seconds in real time
         # At 60 FPS: 100 / (7.5 * 60) = 0.2222 per frame
         self.hunger_timer += 0.2222
+
+        # Overcrowding adds additional hunger pressure to curb runaway prey growth.
+        if prey_list is not None:
+            overcrowding = len(prey_list) - self.overpopulation_threshold
+            if overcrowding > 0:
+                extra_hunger = min(
+                    self.overpopulation_hunger_rate_cap,
+                    overcrowding * self.overpopulation_hunger_rate,
+                )
+                self.hunger_timer += extra_hunger
 
         if self.hunger_timer > self.hunger_threshold + self.starvation_hunger_window:
             if prey_list is not None and self in prey_list:
@@ -63,6 +76,9 @@ class preyFish(Fish, Boids):
         child.starvation_day_min = self.starvation_day_min
         child.starvation_day_max = self.starvation_day_max
         child.starvation_hunger_window = random.uniform(800, 1200)
+        child.overpopulation_threshold = self.overpopulation_threshold
+        child.overpopulation_hunger_rate = self.overpopulation_hunger_rate
+        child.overpopulation_hunger_rate_cap = self.overpopulation_hunger_rate_cap
         return child
 
     def _move_normal(self, prey_list):
